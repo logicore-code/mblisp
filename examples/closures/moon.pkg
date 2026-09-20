@@ -1,0 +1,8 @@
+// Closures example package — see main.mbt for the embedded Scheme
+// script.
+
+import {
+  "logicore-code/mblisp",
+}
+
+pkgtype(kind: "executable")
