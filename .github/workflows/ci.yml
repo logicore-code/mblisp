@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: moon check + test + fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MoonBit toolchain
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Cache MoonBit core
+        uses: actions/cache@v4
+        with:
+          path: ~/.moon
+          key: moon-core-${{ runner.os }}-${{ hashFiles('**/moon.mod') }}
+          restore-keys: moon-core-${{ runner.os }}-
+
+      - name: Format check
+        run: moon fmt --check
+
+      - name: Static type-check
+        run: moon check
+
+      - name: Run unit tests
+        run: moon test
+
+      - name: Smoke-test each example (native target)
+        run: |
+          for ex in factorial fibonacci closures higher_order list_ops y_combinator; do
+            moon run "examples/$ex" --target native
+          done
+          moon run cmd/repl --target native
+
+      - name: Confirm wasm target builds
+        run: moon check --target all
