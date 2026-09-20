@@ -1,0 +1,9 @@
+// Fibonacci example package. Imports the mblisp interpreter from
+// the parent module and exposes a `main` that prints the first ten
+// Fibonacci numbers computed by the Scheme function.
+
+import {
+  "logicore-code/mblisp",
+}
+
+pkgtype(kind: "executable")
