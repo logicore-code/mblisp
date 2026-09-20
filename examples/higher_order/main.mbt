@@ -6,6 +6,7 @@
 // to compose the result with another \`square\` — and verify the
 // final result.
 
+///|
 let src : String =
   #|
   #| (define (compose f g)
@@ -19,6 +20,7 @@ let src : String =
   #|
   #| (+ (square-then-inc 3) (inc-then-square 3))
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

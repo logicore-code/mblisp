@@ -5,6 +5,7 @@
 // a separate executable so the README can link to the smallest
 // possible self-contained script.
 
+///|
 let src : String =
   #|
   #| (define (fact n)
@@ -14,6 +15,7 @@ let src : String =
   #|
   #| (fact 6)
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

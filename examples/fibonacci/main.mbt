@@ -3,6 +3,7 @@
 // Demonstrates recursive `define` and arithmetic. Computes the
 // first few Fibonacci numbers and prints them.
 
+///|
 let src : String =
   #|
   #| (define (fib n)
@@ -21,6 +22,7 @@ let src : String =
   #| (fib 8)
   #| (fib 9)
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

@@ -4,6 +4,7 @@
 // \`cdr\`, \`list\`, \`length\`, \`append\`, \`reverse\`) on a small
 // sample list and a few user-defined helpers.
 
+///|
 let src : String =
   #|
   #| (define xs (list 1 2 3 4 5))
@@ -23,6 +24,7 @@ let src : String =
   #|
   #| (map square xs)
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

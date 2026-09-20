@@ -6,6 +6,7 @@
 // two resulting closures are independent and remember their own
 // capture.
 
+///|
 let src : String =
   #|
   #| (define (make-adder n)
@@ -16,6 +17,7 @@ let src : String =
   #|
   #| (+ (add2 3) (add10 3))
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

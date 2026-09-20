@@ -7,6 +7,7 @@
 // \`almost-fact\` helper that the combinator wires back to
 // itself.
 
+///|
 let src : String =
   #|
   #| (define Y
@@ -21,6 +22,7 @@ let src : String =
   #|
   #| (fact 5)
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {
