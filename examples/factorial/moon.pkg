@@ -1,0 +1,7 @@
+// Factorial example package — see main.mbt.
+
+import {
+  "logicore-code/mblisp",
+}
+
+pkgtype(kind: "executable")
