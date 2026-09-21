@@ -100,8 +100,13 @@ fn main {
 ## Building / testing
 
 ```bash
-# Unit tests (89 cases: sexp, reader, env, primitives, eval)
+# Unit tests (94 cases: sexp, reader, env, primitives, eval,
+# plus named-let / letrec coverage)
 moon test
+
+# Performance benchmarks (median wall-clock per eval_top call).
+# Numbers are recorded in docs/benchmark.md.
+moon test --target native --release perf
 
 # Type-check the library and all examples
 moon check
@@ -116,7 +121,11 @@ moon run examples/closures      --target native
 moon run examples/list_ops      --target native
 moon run examples/higher_order  --target native
 moon run examples/y_combinator  --target native
+moon run examples/hanoi         --target native
+moon run examples/quicksort     --target native
+moon run examples/lazy_streams  --target native
 moon run cmd/repl               --target native
+moon run embed_demo             --target native
 ```
 
 The examples each embed a tiny Scheme script, run it via `eval_top` and print
@@ -125,3 +134,35 @@ the value of the last form.
 ## License
 
 Apache-2.0. See `LICENSE` for the full text.
+
+## How this fits in the MoonBit ecosystem
+
+`mblisp` is one of the few pure-MoonBit-language projects that
+tries to be **useful in other MoonBit projects**, rather than
+just being a thing that exists. Three specific angles:
+
+- **DSL embedder for MoonBit apps.** A MoonBit backend service
+  that wants to expose runtime-configurable business rules can
+  embed `mblisp` and let the ops team write the rules in Scheme.
+  See `examples/embed_demo/` for a runnable mock-routing-rules
+  demo.
+- **Reference interpreter for MoonBit learners.** `eval.mbt`
+  walks through every special form by hand. Anyone learning
+  MoonBit can read it and see idiomatic uses of `match`,
+  `suberror`, `HashMap`, `Ref`, `derive(Debug)`, and `try` /
+  `catch` / `noraise`.
+- **wasm-friendly.** The interpreter compiles to `wasm` /
+  `wasm-gc` / `js` / `native` with zero source changes. A
+  wasm-built interpreter can run inside a browser tab without
+  pulling in JavaScript glue (see `moon build --target wasm`).
+
+Benchmarks (median wall-clock per `eval_top` call, native release
+build, see `docs/benchmark.md` for caveats):
+
+| Workload | Time |
+|---|---|
+| `(fib 15)`             | 2.9 ms   |
+| `(fact 10)`            | 20.7 µs  |
+| closure construction   | 6.8 µs   |
+| 50-element list ops    | 94.1 µs  |
+| Y combinator fact(5)   | 42.5 µs  |
