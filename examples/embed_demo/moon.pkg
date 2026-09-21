@@ -1,0 +1,7 @@
+// Embedding demo — see main.mbt for the mock-router walkthrough.
+
+import {
+  "logicore-code/mblisp",
+}
+
+pkgtype(kind: "executable")

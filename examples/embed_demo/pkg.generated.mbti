@@ -1,0 +1,15 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "logicore-code/mblisp/examples/embed_demo"
+
+// Values
+
+// Errors
+
+// Types and methods
+type Request
+
+type Rule
+
+// Type aliases
+
+// Traits
