@@ -27,7 +27,7 @@
 pub fn read_all(input : String) -> Array[SExp] raise ReadError {
   let r : Reader = { src: input, pos: 0, }
   let out : Array[SExp] = []
-  while not(r.at_end()) {
+  while !r.at_end() {
     skip_trivia(r)
     if r.at_end() {
       break
@@ -45,7 +45,7 @@ pub fn read_one(input : String) -> SExp raise ReadError {
   skip_trivia(r)
   let e = read_expr(r)
   skip_trivia(r)
-  if not(r.at_end()) {
+  if !r.at_end() {
     raise UnmatchedParen(r.pos)
   }
   e
@@ -53,7 +53,7 @@ pub fn read_one(input : String) -> SExp raise ReadError {
 
 ///|
 /// Internal cursor over the source text.
-struct Reader {
+priv struct Reader {
   src : String
   mut pos : Int
 }
@@ -79,7 +79,7 @@ fn Reader::peek(self : Reader) -> Char {
 /// Consume the next byte and return it. Returns `'\u0000'` at end.
 fn Reader::next(self : Reader) -> Char {
   let ch = self.peek()
-  if not(self.at_end()) {
+  if !self.at_end() {
     self.pos = self.pos + 1
   }
   ch
@@ -88,11 +88,11 @@ fn Reader::next(self : Reader) -> Char {
 ///|
 /// Skip whitespace and `;` comments.
 fn skip_trivia(r : Reader) -> Unit {
-  while not(r.at_end()) {
+  while !r.at_end() {
     match r.peek() {
       ' ' | '\t' | '\n' | '\r' => r.next() |> ignore
       ';' =>
-        while not(r.at_end()) {
+        while !r.at_end() {
           let ch = r.next()
           if ch == '\n' {
             break
@@ -139,7 +139,7 @@ fn has_digit_after(r : Reader) -> Bool {
   if r.pos + 1 >= r.src.length() {
     false
   } else {
-    let next = r.src.unsafe_char_at(r.pos + 1)
+    let next = r.src.get_char(r.pos + 1).unwrap()
     next >= '0' && next <= '9'
   }
 }
@@ -261,7 +261,7 @@ fn read_string(r : Reader) -> SExp raise ReadError {
     raise InvalidChar(r.pos, open)
   }
   let buf = StringBuilder()
-  while not(r.at_end()) {
+  while !r.at_end() {
     let ch = r.next()
     if ch == '"' {
       return SExp::str(buf.to_string())
@@ -304,7 +304,7 @@ fn read_number(r : Reader) -> SExp raise ReadError {
   if r.peek() == '-' {
     s = s + r.next().to_string()
   }
-  while not(r.at_end()) {
+  while !r.at_end() {
     let ch = r.peek()
     let is_digit = ch >= '0' && ch <= '9'
     let is_dot = ch == '.'
@@ -417,7 +417,7 @@ fn parse_double(s : String) -> Double? {
 /// Read a symbol (an identifier).
 fn read_symbol(r : Reader) -> SExp {
   let buf = StringBuilder()
-  while not(r.at_end()) {
+  while !r.at_end() {
     let ch = r.peek()
     if is_symbol_cont(ch) {
       buf.write_char(r.next())

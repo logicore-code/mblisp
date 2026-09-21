@@ -29,8 +29,6 @@ pub suberror ReadError {
   UnmatchedParen(Int)
   /// A literal (number, string, ...) could not be parsed.
   InvalidLiteral(Int, String)
-  /// Generic catch-all for the reader so it can raise with a string.
-  ReadFailure(String)
 }
 
 ///|
@@ -66,7 +64,6 @@ pub fn ReadError::describe(self : ReadError) -> String {
     InvalidChar(pos, ch) => "invalid character '\{ch}' at byte \{pos}"
     UnmatchedParen(pos) => "unmatched paren at byte \{pos}"
     InvalidLiteral(pos, lit) => "invalid literal '\{lit}' at byte \{pos}"
-    ReadFailure(msg) => "read error: \{msg}"
   }
 }
 

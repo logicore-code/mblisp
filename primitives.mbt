@@ -32,7 +32,7 @@ pub fn prim_name_of(value : SExp) -> String? {
   match value {
     Sym(s) =>
       if s.has_prefix("__primitive__:") {
-        Some(s.substring(start=14, end=s.length()))
+        Some(s[14:].to_owned())
       } else {
         None
       }
@@ -365,7 +365,7 @@ pub fn prim_append(args : Array[SExp]) -> SExp raise {
   match (args[0], args[1]) {
     (Nil, other) => other
     (Cons(_, _), other) => {
-      if not(args[0].self_is_list()) {
+      if !args[0].self_is_list() {
         raise TypeMismatch("append", "list")
       }
       let items = args[0].to_array()
@@ -388,7 +388,7 @@ pub fn prim_reverse(args : Array[SExp]) -> SExp raise {
   match args[0] {
     Nil => Nil
     Cons(_, _) =>
-      if not(args[0].self_is_list()) {
+      if !args[0].self_is_list() {
         raise TypeMismatch("reverse", "list")
       } else {
         let items = args[0].to_array()

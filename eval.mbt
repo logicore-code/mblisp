@@ -86,10 +86,6 @@ pub fn eval(expr : SExp, env : Env) -> EvalResult raise {
         None => raise UnboundSymbol(name)
       }
     Cons(head, rest) => eval_pair(head, rest, env)
-    _ =>
-      // Includes dotted-pair tails that are not themselves valid
-      // expressions; only matters for malformed input.
-      raise EvalFailure("cannot evaluate \{expr.to_string()}")
   }
 }
 
@@ -310,13 +306,13 @@ fn eval_cond(rest : SExp, env : Env) -> EvalResult raise {
     }
     match items[0] {
       Sym("else") => {
-        let r = eval_begin(SExp::from_array(items[1:].to_array()), env)
+        let r = eval_begin(SExp::from_array(items[1:].to_owned()), env)
         return r
       }
       _ => {
         let r = eval(items[0], env)
         if truthy(r.value) {
-          let body_r = eval_begin(SExp::from_array(items[1:].to_array()), r.env)
+          let body_r = eval_begin(SExp::from_array(items[1:].to_owned()), r.env)
           return body_r
         }
         last = SExp::nil()
@@ -516,7 +512,7 @@ fn bind_params(
         fixed.push(n)
         cur = rest
       }
-      Cons(_, rest) => raise EvalFailure("closure: parameter must be a symbol")
+      Cons(_, _) => raise EvalFailure("closure: parameter must be a symbol")
       Sym(rest_name) => {
         // Improper tail: `(x y . rest)` produces this case at the
         // very end of the list.
@@ -545,7 +541,7 @@ fn bind_params(
     Some(rest_name) =>
       child = child.bind(
         rest_name,
-        SExp::from_array(args[fixed_count:].to_array()),
+        SExp::from_array(args[fixed_count:].to_owned()),
       )
     None => ()
   }
