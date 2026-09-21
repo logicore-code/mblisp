@@ -181,8 +181,18 @@ fn eval_define(rest : SExp, env : Env) -> EvalResult raise {
   }
   match items[0] {
     Sym(name) => {
-      let r = eval(items[1], env)
-      EvalResult::{ env: r.env.bind(name, r.value), value: r.value, }
+      // Plain `(define name expr)`. The expression may reference
+      // `name` itself (e.g. `(define ones (lambda () (cons 1 ones)))`),
+      // so we pre-bind `name` to a placeholder in the environment
+      // before evaluating the rhs, then replace that placeholder
+      // with the actual value afterwards.
+      let marker = register_env(env)
+      let placeholder = SExp::sym(marker)
+      let env_with_self = env.bind(name, placeholder)
+      rebind_env(marker, env_with_self)
+      let r = eval(items[1], env_with_self)
+      let final_env = r.env.assign(name, r.value)
+      EvalResult::{ env: final_env, value: r.value, }
     }
     Cons(head_sym, params_cell) =>
       match head_sym {
