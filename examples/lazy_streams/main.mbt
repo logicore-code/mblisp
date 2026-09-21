@@ -11,6 +11,7 @@
 // `((cdr s))` (i.e. apply the cdr as a function) gets the tail.
 // That's slightly noisier than R5RS streams but works fine.
 
+///|
 let src : String =
   #|
   #| (define ones
@@ -29,6 +30,7 @@ let src : String =
   #|
   #| (take-nats 8 5)
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

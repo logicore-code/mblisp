@@ -4,6 +4,7 @@
 // sequence of moves required to move the tower from peg A to peg C
 // using peg B as scratch, plus the total move count.
 
+///|
 let src : String =
   #|
   #| (define (move n from to via)
@@ -22,6 +23,7 @@ let src : String =
   #|
   #| (len (move 4 'A 'C 'B))
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {

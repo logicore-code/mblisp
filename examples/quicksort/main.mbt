@@ -3,6 +3,7 @@
 // Standard list quicksort using only `car`/`cdr`/`cons` and the
 // built-in primitives. Sorts a list and prints the result.
 
+///|
 let src : String =
   #|
   #| (define (filter pred xs)
@@ -21,6 +22,7 @@ let src : String =
   #|
   #| (qsort (list 3 1 4 1 5 9 2 6 5 3 5))
 
+///|
 fn main {
   let result = try @mblisp.eval_top(src) catch {
     err => {
