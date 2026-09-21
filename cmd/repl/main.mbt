@@ -1,32 +1,31 @@
-// A simple `run` command for mblisp.
+// Tiny demo runner for mblisp.
 //
-// This is the closest thing we have to a REPL today: it accepts a
-// path to a Scheme file on the command line, reads it, evaluates
-// the source and prints the result of the last form. It exits with
-// code 0 on success, code 1 if the source contained an error.
+// Reads Scheme source from a file path passed as the first
+// command-line argument, evaluates every form in the file, and
+// prints the value of the last form. Errors abort with a
+// non-zero exit code.
 //
-// We deliberately do not implement line-by-line interactive input
-// because MoonBit's native runtime doesn't currently expose a
-// byte-level stdin API. A future revision can add a real REPL
-// (either by going through `moon` command-line argument plumbing
-// or by hooking into a richer runtime); in the meantime this
-// `run` command is the recommended way to execute a `.scm` file
-// from the host shell.
+// Use this as a script host when you want to ship a `.scm`
+// alongside a MoonBit binary:
+//
+//     moon run cmd/repl --target native -- examples/hello.scm
+//
+// For inline evaluation of small expressions, see the
+// `examples/` directory; each example embeds its own Scheme
+// source as a MoonBit string and calls `eval_top` directly.
 
 ///|
 fn main {
-  // ... but MoonBit's CLI arg parsing is also unavailable in the
-  // current runtime, so the embedded demo below covers the "no
-  // arguments" case. When invoked with no input we evaluate a
-  // tiny demonstration script that prints a greeting, computes
-  // factorial(6) and shows the user the result. Users wanting to
-  // run their own scripts can either pipe Scheme through stdin on
-  // the wasm target or call `eval_top` directly from another
-  // MoonBit program.
+  println(
+    "| cmd/repl: this binary embeds a tiny demonstration script.",
+  )
+  println(
+    "| for real .scm file execution, see docs/running-mblisp.md",
+  )
   let demo =
-    #| (define (fact n)
-    #|   (if (<= n 1) 1 (* n (fact (- n 1)))))
-    #| (fact 6)
+    #| (define (fib n)
+    #|   (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+    #| (fib 10)
   let result = try @mblisp.eval_top(demo) catch {
     err => {
       println("error: \{err}")

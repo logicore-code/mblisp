@@ -194,3 +194,55 @@ test "eval_truthiness_only_rejects_false" {
 test "eval_primitive_plus_chains_more_than_two_args" {
   assert_eq(run("(+ 1 2 3 4 5)"), SExp::int(15))
 }
+
+///|
+test "eval_letrec_mutually_recursive_predicates" {
+  let src =
+    #| (letrec ((even? (lambda (n) (if (= n 0) #t (odd? (- n 1)))))
+    #|          (odd?  (lambda (n) (if (= n 0) #f (even? (- n 1))))))
+    #|   (even? 10))
+  assert_eq(run(src), SExp::bool_true())
+}
+
+///|
+test "eval_letrec_self_recursive_factorial" {
+  let src =
+    #| (letrec ((fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1)))))))
+    #|   (fact 5))
+  assert_eq(run(src), SExp::int(120))
+}
+
+///|
+test "eval_named_let_sum" {
+  // `(let loop ((i 0) (acc 0)) ...)` is the classic iteration form.
+  let src =
+    #| (let loop ((i 0) (acc 0))
+    #|   (if (= i 10)
+    #|       acc
+    #|       (loop (+ i 1) (+ acc i))))
+  assert_eq(run(src), SExp::int(45))
+}
+
+///|
+test "eval_named_let_factorial" {
+  let src =
+    #| (let fact ((n 5) (acc 1))
+    #|   (if (<= n 1)
+    #|       acc
+    #|       (fact (- n 1) (* acc n))))
+  assert_eq(run(src), SExp::int(120))
+}
+
+///|
+test "eval_named_let_uses_recursive_call" {
+  // Verify the named procedure sees itself through closure capture.
+  let src =
+    #| (let countdown ((n 3))
+    #|   (if (= n 0)
+    #|       '()
+    #|       (cons n (countdown (- n 1)))))
+  assert_eq(
+    run(src),
+    SExp::from_array([SExp::int(3), SExp::int(2), SExp::int(1)][:]),
+  )
+}

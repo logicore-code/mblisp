@@ -34,6 +34,19 @@ pub struct EvalResult {
 /// environment in the global `env_table`.
 pub fn make_closure(params : SExp, body : SExp, env : Env) -> SExp {
   let marker = register_env(env)
+  closure_with_marker(params, body, marker)
+}
+
+///|
+/// Build a closure that uses an externally-provided marker for its
+/// captured environment. Used by `letrec` and `define` so that a
+/// single `rebind_env` call later wires up every closure that was
+/// constructed during value evaluation.
+pub fn closure_with_marker(
+  params : SExp,
+  body : SExp,
+  marker : String,
+) -> SExp {
   SExp::cons(params, SExp::cons(body, SExp::sym(marker)))
 }
 
@@ -129,6 +142,7 @@ fn eval_pair(head : SExp, rest : SExp, env : Env) -> EvalResult raise {
         "lambda" => eval_lambda(rest, env)
         "let" => eval_let(rest, env)
         "let*" => eval_letstar(rest, env)
+        "letrec" => eval_letrec(rest, env)
         "cond" => eval_cond(rest, env)
         "begin" => eval_begin(rest, env)
         _ =>
@@ -249,9 +263,21 @@ fn eval_lambda(rest : SExp, env : Env) -> EvalResult raise {
 ///|
 /// `(let ((name val) ...) body)` — local bindings. The body is
 /// evaluated in a child frame of `env` containing all the new
-/// bindings.
+/// bindings. If the first element of `rest` is a symbol and the
+/// second element is a binding list, this is a named-let loop:
+/// the symbol names a procedure whose formal parameters are the
+/// bindings and whose body is the third element.
 fn eval_let(rest : SExp, env : Env) -> EvalResult raise {
   let items = rest.to_array()
+  // Named-let: `(let name ((p1 v1) ...) body)` — three elements,
+  // first is a symbol.
+  if items.length() == 3 {
+    match items[0] {
+      Sym(loop_name) =>
+        return eval_named_let(loop_name, items[1], items[2], env)
+      _ => ()
+    }
+  }
   if items.length() != 2 {
     raise ArityError::WrongArity("let", 2, items.length())
   }
@@ -272,6 +298,47 @@ fn eval_let(rest : SExp, env : Env) -> EvalResult raise {
   }
   let r = eval(items[1], child)
   EvalResult::{ env, value: r.value, }
+}
+
+///|
+/// Named-let: `(let name ((p1 e1) ...) body)` desugars to
+/// `((letrec ((name (lambda (p1 ...) body))) name) e1 ...)`.
+fn eval_named_let(
+  loop_name : String,
+  bindings_sexp : SExp,
+  body : SExp,
+  env : Env,
+) -> EvalResult raise {
+  let formals : Array[String] = []
+  let args : Array[SExp] = []
+  let bindings = bindings_sexp.to_array()
+  let mut current = env
+  for b in bindings {
+    match b {
+      Cons(Sym(p), Cons(value, Nil)) => {
+        let r = eval(value, current)
+        current = r.env
+        formals.push(p)
+        args.push(r.value)
+      }
+      _ => raise EvalFailure("let: invalid binding form")
+    }
+  }
+  // Build a closure `(formals body . env_marker)` and apply it to
+  // the evaluated arguments. The closure binds `loop_name` in
+  // its captured env so recursive calls work.
+  let params = SExp::from_array(
+    formals.map(fn(s) { SExp::sym(s) }),
+  )
+  let marker = register_env(current)
+  let closure = SExp::cons(
+    params,
+    SExp::cons(body, SExp::sym(marker)),
+  )
+  let env_with_self = current.bind(loop_name, closure)
+  rebind_env(marker, env_with_self)
+  let value = apply(closure, args)
+  EvalResult::{ env, value, }
 }
 
 ///|
@@ -296,6 +363,60 @@ fn eval_letstar(rest : SExp, env : Env) -> EvalResult raise {
         }
       _ => raise EvalFailure("let*: invalid binding form")
     }
+  }
+  eval(items[1], child)
+}
+
+///|
+/// `(letrec ((name val) ...) body)` — mutually recursive local
+/// bindings. Each `name` is visible inside every `val` (including
+/// itself and other bindings in the same `letrec`).
+///
+/// Implementation: bind each name to a placeholder, evaluate the
+/// values, and patch every marker that was registered during
+/// value evaluation. `register_env` allocates markers from a
+/// monotonically increasing counter, so we remember the counter
+/// value at the start and rebind every marker registered since.
+fn eval_letrec(rest : SExp, env : Env) -> EvalResult raise {
+  let items = rest.to_array()
+  if items.length() != 2 {
+    raise ArityError::WrongArity("letrec", 2, items.length())
+  }
+  let mut child = Env::child(env)
+  let bindings = items[0].to_array()
+  let names : Array[String] = []
+  for b in bindings {
+    match b {
+      Cons(name, _) =>
+        match name {
+          Sym(n) => {
+            names.push(n)
+            let placeholder_marker = register_env(child)
+            child = child.bind(n, SExp::sym(placeholder_marker))
+          }
+          _ => raise EvalFailure("letrec: invalid binding name")
+        }
+      _ => raise EvalFailure("letrec: invalid binding form")
+    }
+  }
+  let pre_counter = env_counter.val
+  for i, b in bindings {
+    match b {
+      Cons(_, Cons(value, Nil)) => {
+        let r = eval(value, child)
+        child = r.env
+        child = child.assign(names[i], r.value)
+        let _ = i
+      }
+      _ => raise EvalFailure("letrec: invalid binding form")
+    }
+  }
+  // Rebind every marker that was allocated during value
+  // evaluation. They were registered against the in-flight
+  // `child`; re-point them at the fully-patched `child` so
+  // closures that captured them see the final bindings.
+  for i = pre_counter; i < env_counter.val; i = i + 1 {
+    rebind_env("__env__:" + i.to_string(), child)
   }
   eval(items[1], child)
 }
