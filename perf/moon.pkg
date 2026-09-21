@@ -1,0 +1,10 @@
+// Performance benchmarks — uses `moonbitlang/core/bench` and
+// `moonbitlang/core/json` for printing the timing summary.
+
+import {
+  "logicore-code/mblisp",
+  "moonbitlang/core/bench",
+  "moonbitlang/core/json",
+}
+
+pkgtype(kind: "executable")
