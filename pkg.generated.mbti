@@ -1,0 +1,157 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "logicore-code/mblisp"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn apply(SExp, Array[SExp]) -> SExp raise
+
+pub fn closure_with_marker(SExp, SExp, String) -> SExp
+
+pub fn eval(SExp, Env) -> EvalResult raise
+
+pub fn eval_top(String, env? : Env) -> SExp raise
+
+pub fn make_closure(SExp, SExp, Env) -> SExp
+
+pub fn prim_add(Array[SExp]) -> SExp raise
+
+pub fn prim_append(Array[SExp]) -> SExp raise
+
+pub fn prim_booleanp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_car(Array[SExp]) -> SExp raise
+
+pub fn prim_cdr(Array[SExp]) -> SExp raise
+
+pub fn prim_cons(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_display(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_div(Array[SExp]) -> SExp raise
+
+pub fn prim_eq(Array[SExp]) -> SExp raise
+
+pub fn prim_eqp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_ge(Array[SExp]) -> SExp raise
+
+pub fn prim_gt(Array[SExp]) -> SExp raise
+
+pub fn prim_le(Array[SExp]) -> SExp raise
+
+pub fn prim_length(Array[SExp]) -> SExp raise
+
+pub fn prim_list(Array[SExp]) -> SExp
+
+pub fn prim_lt(Array[SExp]) -> SExp raise
+
+pub fn prim_mul(Array[SExp]) -> SExp raise
+
+pub fn prim_name_of(SExp) -> String?
+
+pub fn prim_nullp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_number_to_string(Array[SExp]) -> SExp raise
+
+pub fn prim_numberp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_pairp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_print(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_reverse(Array[SExp]) -> SExp raise
+
+pub fn prim_stringp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_sub(Array[SExp]) -> SExp raise
+
+pub fn prim_symbolp(Array[SExp]) -> SExp raise ArityError
+
+pub fn prim_tag(String) -> SExp
+
+pub fn read_all(String) -> Array[SExp] raise ReadError
+
+pub fn read_one(String) -> SExp raise ReadError
+
+pub fn rebind_env(String, Env) -> Unit
+
+pub fn register_env(Env) -> String
+
+pub fn self_is_prim(SExp, String) -> Bool
+
+// Errors
+pub suberror ArityError {
+  WrongArity(String, Int, Int)
+}
+pub fn ArityError::describe(Self) -> String
+
+pub suberror EvalError {
+  UnboundSymbol(String)
+  NotCallable(String)
+  TypeMismatch(String, String)
+  EvalFailure(String)
+}
+pub fn EvalError::describe(Self) -> String
+
+pub suberror ReadError {
+  UnexpectedEOF(String)
+  InvalidChar(Int, Char)
+  UnmatchedParen(Int)
+  InvalidLiteral(Int, String)
+}
+pub fn ReadError::describe(Self) -> String
+
+// Types and methods
+pub struct Env {
+  bindings : Map[String, SExp]
+  parent : Env?
+} derive(@debug.Debug)
+pub fn Env::assign(Self, String, SExp) -> Self
+pub fn Env::bind(Self, String, SExp) -> Self
+pub fn Env::child(Self) -> Self
+pub fn Env::local_size(Self) -> Int
+pub fn Env::lookup(Self, String) -> SExp?
+pub fn Env::new() -> Self
+pub fn Env::self_is_global(Self) -> Bool
+pub fn Env::to_list(Self) -> SExp
+pub fn Env::total_size(Self) -> Int
+
+pub struct EvalResult {
+  env : Env
+  value : SExp
+} derive(@debug.Debug)
+
+pub enum SExp {
+  Num(Double)
+  Str(String)
+  Sym(String)
+  Bool(Bool)
+  Nil
+  Cons(SExp, SExp)
+} derive(Eq, @debug.Debug)
+pub fn SExp::bool_false() -> Self
+pub fn SExp::bool_true() -> Self
+pub fn SExp::cons(Self, Self) -> Self
+pub fn SExp::equal(Self, Self) -> Bool
+pub fn SExp::from_array(ArrayView[Self]) -> Self
+pub fn SExp::int(Int) -> Self
+pub fn SExp::nil() -> Self
+pub fn SExp::num(Double) -> Self
+pub fn SExp::self_is_bool(Self) -> Bool
+pub fn SExp::self_is_list(Self) -> Bool
+pub fn SExp::self_is_nil(Self) -> Bool
+pub fn SExp::self_is_number(Self) -> Bool
+pub fn SExp::self_is_pair(Self) -> Bool
+pub fn SExp::self_is_string(Self) -> Bool
+pub fn SExp::self_is_symbol(Self) -> Bool
+pub fn SExp::str(String) -> Self
+pub fn SExp::sym(String) -> Self
+pub fn SExp::to_array(Self) -> Array[Self]
+pub fn SExp::to_string(Self) -> String
+
+// Type aliases
+
+// Traits

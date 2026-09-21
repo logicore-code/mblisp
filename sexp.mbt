@@ -162,6 +162,21 @@ fn SExp::write_to(self : SExp, buf : StringBuilder) -> Unit {
 /// Internal: write a `Cons` spine to `buf`, choosing between list,
 /// dotted pair and improper-list formatting depending on the tail.
 fn write_list_to(s : SExp, buf : StringBuilder) -> Unit {
+  // Detect the `(quote x)` shorthand and emit `'x` instead. This
+  // keeps the round-trip lossless for the only special-form list
+  // shape the reader desugars at parse time.
+  match s {
+    Cons(Sym("quote"), tail) =>
+      match tail {
+        Cons(quoted, Nil) => {
+          buf.write_char('\'')
+          quoted.write_to(buf)
+          return
+        }
+        _ => ()
+      }
+    _ => ()
+  }
   buf.write_char('(')
   let mut cur = s
   let mut first = true
