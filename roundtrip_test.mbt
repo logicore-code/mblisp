@@ -129,11 +129,11 @@ test "eval_top_propagates_top_level_defines" {
   // Three top-level forms. The third form references a binding
   // established by the first, so the threading has to work.
   let src = "(define x 10) (define y 20) (+ x y)"
-  let r = (try eval_top(src) catch {
+  let r = try eval_top(src) catch {
     _ => SExp::int(-1)
   } noraise {
     v => v
-  })
+  }
   assert_eq(r, SExp::int(30))
 }
 
@@ -145,10 +145,10 @@ test "eval_lambda_captures_top_level_binding" {
     #| (define n 5)
     #| (define get-n (lambda () n))
     #| (get-n)
-  let r = (try eval_top(src) catch {
+  let r = try eval_top(src) catch {
     _ => SExp::int(-1)
   } noraise {
     v => v
-  })
+  }
   assert_eq(r, SExp::int(5))
 }

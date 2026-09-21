@@ -77,15 +77,35 @@ fn main {
   let public_read_script =
     #| (eq? method 'GET)
   let rules : Array[Rule] = [
-    { name: "admin-write", script: admin_write_script },
-    { name: "health-check", script: health_check_script },
-    { name: "public-read", script: public_read_script },
+    { name: "admin-write", script: admin_write_script, },
+    { name: "health-check", script: health_check_script, },
+    { name: "public-read", script: public_read_script, },
   ]
   let requests : Array[Request] = [
-    { http_method: "POST", url_path: "/users", user_role: "admin", is_authenticated: true },
-    { http_method: "POST", url_path: "/users", user_role: "user", is_authenticated: true },
-    { http_method: "GET", url_path: "/posts/123", user_role: "user", is_authenticated: false },
-    { http_method: "GET", url_path: "/health", user_role: "system", is_authenticated: false },
+    {
+      http_method: "POST",
+      url_path: "/users",
+      user_role: "admin",
+      is_authenticated: true,
+    },
+    {
+      http_method: "POST",
+      url_path: "/users",
+      user_role: "user",
+      is_authenticated: true,
+    },
+    {
+      http_method: "GET",
+      url_path: "/posts/123",
+      user_role: "user",
+      is_authenticated: false,
+    },
+    {
+      http_method: "GET",
+      url_path: "/health",
+      user_role: "system",
+      is_authenticated: false,
+    },
   ]
   println("| mblisp embed demo: rule-based request routing")
   println("| -------------------------------------------")

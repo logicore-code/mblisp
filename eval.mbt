@@ -42,11 +42,7 @@ pub fn make_closure(params : SExp, body : SExp, env : Env) -> SExp {
 /// captured environment. Used by `letrec` and `define` so that a
 /// single `rebind_env` call later wires up every closure that was
 /// constructed during value evaluation.
-pub fn closure_with_marker(
-  params : SExp,
-  body : SExp,
-  marker : String,
-) -> SExp {
+pub fn closure_with_marker(params : SExp, body : SExp, marker : String) -> SExp {
   SExp::cons(params, SExp::cons(body, SExp::sym(marker)))
 }
 
@@ -327,14 +323,9 @@ fn eval_named_let(
   // Build a closure `(formals body . env_marker)` and apply it to
   // the evaluated arguments. The closure binds `loop_name` in
   // its captured env so recursive calls work.
-  let params = SExp::from_array(
-    formals.map(fn(s) { SExp::sym(s) }),
-  )
+  let params = SExp::from_array(formals.map(fn(s) { SExp::sym(s) }))
   let marker = register_env(current)
-  let closure = SExp::cons(
-    params,
-    SExp::cons(body, SExp::sym(marker)),
-  )
+  let closure = SExp::cons(params, SExp::cons(body, SExp::sym(marker)))
   let env_with_self = current.bind(loop_name, closure)
   rebind_env(marker, env_with_self)
   let value = apply(closure, args)

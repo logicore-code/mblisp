@@ -16,12 +16,8 @@
 
 ///|
 fn main {
-  println(
-    "| cmd/repl: this binary embeds a tiny demonstration script.",
-  )
-  println(
-    "| for real .scm file execution, see docs/running-mblisp.md",
-  )
+  println("| cmd/repl: this binary embeds a tiny demonstration script.")
+  println("| for real .scm file execution, see docs/running-mblisp.md")
   let demo =
     #| (define (fib n)
     #|   (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
