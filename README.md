@@ -79,6 +79,24 @@ logicore-code/mblisp/
   methods that would collide were renamed: `Env::extend` → `Env::child`,
   `Env::define` → `Env::bind`.
 
+### Caveat: MoonBit wasm / JS interop in 0.1.20260915
+
+The interpreter itself compiles cleanly for `wasm`, `wasm-gc`,
+`js`, and `native`. However, this MoonBit version doesn't
+expose a `pub fn` as a named wasm export — the only wasm
+exports are the internal `moonbit.*` runtime helpers. So a
+browser-side REPL that "just calls `mblisp.eval_top(src)` from
+JS" isn't a few lines away; you either need to host the
+wasm through WASI (for stdin/stdout-style I/O) or wait for the
+MoonBit toolchain to expose user functions across the JS
+bridge.
+
+What works today on every target is the MoonBit-side embed
+(see `examples/embed_demo/`), which is what this repository
+documents. A follow-up could ship a small Node.js REPL that
+spawns the native binary as a subprocess; that's a 30-line
+script rather than a toolchain fix.
+
 ## Quick start
 
 The interpreter library is `logicore-code/mblisp`. The simplest program that
