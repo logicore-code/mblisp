@@ -98,3 +98,73 @@ test "bench_run_all" {
 fn main {
   println("perf binary: run `moon test --target native perf` for measurements")
 }
+// "Native vs mblisp" overhead benchmark.
+//
+// Runs the same workload two ways:
+//
+//   1. as a hand-written MoonBit recursive function
+//   2. as a Scheme script passed through `eval_top`
+//
+// Both compute fib(20). The native version is exactly the
+// transformation a smart compiler would apply to the Scheme
+// version: a single recursive function with primitive arithmetic.
+// The interpreter version exercises the full mblisp pipeline
+// (reader + env + eval + primitives + closures).
+//
+// The ratio (interpreted / native) is the per-call embedding
+// overhead that a user pays for the flexibility of running
+// user-supplied Scheme. We document the number in
+// docs/benchmark.md so reviewers can sanity-check the
+// performance picture without running the bench themselves.
+
+///|
+fn fib_native(n : Int) -> Int {
+  if n < 2 {
+    n
+  } else {
+    fib_native(n - 1) + fib_native(n - 2)
+  }
+}
+
+///|
+test "bench_compare_fib20_native" {
+  let summary = @bench.single_bench(
+    name="fib20_native_x10",
+    count=10,
+    fn() {
+      let mut i = 0
+      while i < 10 {
+        ignore(fib_native(20))
+        i = i + 1
+      }
+    },
+  )
+  // Summary is opaque; dump via JSON for a stable report.
+  let json = summary |> @json.to_json |> (j => j.stringify())
+  println("| fib20 native x10: \{json}")
+}
+
+///|
+test "bench_compare_fib20_interpreted" {
+  let src =
+    #| (define (fib n)
+    #|   (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
+    #| (fib 20)
+  let summary = @bench.single_bench(
+    name="fib20_mblisp_x10",
+    count=10,
+    fn() {
+      let mut i = 0
+      while i < 10 {
+        let _ = try @mblisp.eval_top(src) catch {
+          _ => ()
+        } noraise {
+          v => ignore(v)
+        }
+        i = i + 1
+      }
+    },
+  )
+  let json = summary |> @json.to_json |> (j => j.stringify())
+  println("| fib20 mblisp x10: \{json}")
+}

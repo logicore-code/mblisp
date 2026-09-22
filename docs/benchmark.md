@@ -19,6 +19,42 @@ moon test --target native --release perf
 | `(length (build 50))`            | **94.1 µs** | cons-heavy list build + traverse |
 | `(Y (lambda ...)) -> (fact 5)`   | **42.5 µs** | Y combinator + recursive call |
 
+## Native-vs-mblisp overhead
+
+The headline question for any embedding story: how much slower
+is interpreted code than hand-written MoonBit?
+
+Both benches compute `fib(20)` ten times per iteration; the
+"native" version is a hand-written recursive MoonBit function
+(`fn fib_native(n : Int) -> Int { ... }`), the "mblisp" version
+is `(define (fib n) (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))`
+passed to `eval_top`.
+
+| Path | Per-fib(20)-call median | Notes |
+|---|---|---|
+| Native MoonBit       | **20.5 µs** | direct call, `-O2`-ish release build |
+| Through `eval_top`   | **34.6 ms** | full pipeline: read, env, eval, primitives, closures |
+
+That is a ~1700× slowdown. Two ways to read it:
+
+- **Bad news:** if you were going to ship a million fib(20)
+  calls per second, you don't want them to go through mblisp.
+- **Good news:** the target use cases (rule engines, config
+  evaluation, classroom demos) involve a handful of
+  evaluations per request, not thousands. A 35 ms budget for a
+  rule predicate is fine when the surrounding HTTP handler
+  takes 50–200 ms anyway.
+
+If we ever need to close that gap, the obvious next steps
+(cranked away in commit `230fbe6` and the docs/architecture
+write-up) are:
+
+1. A bytecode compiler + small register VM (drops the AST walk
+   and constant-folds primitives).
+2. Inline caching for primitive calls (`+` on two ints should
+   not need an `SExp::match` round-trip per invocation).
+3. Tail-call optimisation for the recursive case.
+
 Notes:
 
 - `fib(15)` is a stress test by design: the naive Fibonacci
