@@ -128,19 +128,15 @@ fn fib_native(n : Int) -> Int {
 
 ///|
 test "bench_compare_fib20_native" {
-  let summary = @bench.single_bench(
-    name="fib20_native_x10",
-    count=10,
-    fn() {
-      let mut i = 0
-      while i < 10 {
-        ignore(fib_native(20))
-        i = i + 1
-      }
-    },
-  )
+  let summary = @bench.single_bench(name="fib20_native_x10", count=10, fn() {
+    let mut i = 0
+    while i < 10 {
+      ignore(fib_native(20))
+      i = i + 1
+    }
+  })
   // Summary is opaque; dump via JSON for a stable report.
-  let json = summary |> @json.to_json |> (j => j.stringify())
+  let json = summary |> @json.to_json |> j => { j.stringify() }
   println("| fib20 native x10: \{json}")
 }
 
@@ -150,21 +146,17 @@ test "bench_compare_fib20_interpreted" {
     #| (define (fib n)
     #|   (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2)))))
     #| (fib 20)
-  let summary = @bench.single_bench(
-    name="fib20_mblisp_x10",
-    count=10,
-    fn() {
-      let mut i = 0
-      while i < 10 {
-        let _ = try @mblisp.eval_top(src) catch {
-          _ => ()
-        } noraise {
-          v => ignore(v)
-        }
-        i = i + 1
+  let summary = @bench.single_bench(name="fib20_mblisp_x10", count=10, fn() {
+    let mut i = 0
+    while i < 10 {
+      let _ = try @mblisp.eval_top(src) catch {
+        _ => ()
+      } noraise {
+        v => ignore(v)
       }
-    },
-  )
-  let json = summary |> @json.to_json |> (j => j.stringify())
+      i = i + 1
+    }
+  })
+  let json = summary |> @json.to_json |> j => { j.stringify() }
   println("| fib20 mblisp x10: \{json}")
 }
